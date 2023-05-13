@@ -42,17 +42,11 @@ end
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = cod:radius()/2 -- cod radius
+    local r = MARGIN*cod:radius() -- cod radius
     
     
-    if tick < 870 then
-        if vec.distance(pos, center) > -5*tick/8+630 then
-            return -tick*vec.distance(pos, center)
-        else
-            return -1
-        end
-    elseif vec.distance(pos, center) > r then
-        return -tick*vec.distance(pos, center)
+    if vec.distance(pos, center) > r then
+        return -vec.distance(pos, center)
     else
         return -1
     end
@@ -104,6 +98,9 @@ end
 
 -- Main bot function
 function bot_main(me)
+    if me:cod():x() ~= -1 then
+        center = vec.new(me:cod():x(), me:cod():y())
+    end
     local move = next_move(me, N)
 
     if move[2] then
