@@ -56,10 +56,6 @@ function score(pos, lamb, dash, me)
     -- Returns the score of a given position
     local a = lamb * cod_score(pos, me:cod())
     local b = dist_score(pos, me:visible(), me)
-    print("cod_score: ", a)
-    print("dist_score: ", b)
-    print("dash: ", dash)
-    print("total: ", a+b+dash)
     return lamb * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + dash
 end
 
@@ -103,7 +99,6 @@ end
 
 -- Main bot function
 function bot_main(me)
-    print("########tick: ", tick)
     local move = next_move(me, 128, 200, -100)
     local cast = false
     if move[2] then
