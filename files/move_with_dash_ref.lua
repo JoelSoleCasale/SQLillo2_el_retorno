@@ -1,7 +1,7 @@
 -- Global variables
 local tick = 0 -- current tick
 local center = vec.new(250,250) -- center of the map
-local LAMB = 1 -- coefficient of the CoD score
+local LAMB = 100 -- coefficient of the CoD score
 local DASH_PEN = -100 -- penalty for dashing
 local MELE_PEN = -100 -- penalty for being too close to an enemy
 local N = 8 -- number of directions
