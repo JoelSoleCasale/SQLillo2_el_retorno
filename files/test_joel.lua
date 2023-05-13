@@ -36,17 +36,35 @@ function get_bullets_future_pos(entities, prev_entities, t)
     return fut_pos
 end
 
+function get_orthogonal_proj(x1, x2, p)
+    local v_x = x2[1] - x1[1]
+    local v_y = x2[2] - x1[2]
+    local v = { v_x, v_y }
+    local w_x = p[1] - x1[1]
+    local w_y = p[2] - x1[2]
+    local w = { w_x, w_y }
+    local c1 = vec.dot(w, v)
+    local c2 = vec.dot(v, v)
+    local b = c1 / c2
+    local pb_x = x1[1] + b * v_x
+    local pb_y = x1[2] + b * v_y
+    return { pb_x, pb_y }
+end
+
 -- Main bot function
 function bot_main(me)
     gametick = gametick + 1
 
-    -- if gametick % 100 == 0 then
-    --     print("=====\ntick " .. gametick)
-    --     display_entities(me:visible())
-    --     display_pos(prev_bullet_pos, "prev: ")
-    --     display_pos(get_bullets_future_pos(me:visible(), prev_bullet_pos, 1), "fut 1: ")
-    --     display_pos(get_bullets_future_pos(me:visible(), prev_bullet_pos, 2), "fut 2: ")
-    -- end
+    if gametick % 100 == 0 and prev_bullet_pos[5] then
+        print("=====\ntick " .. gametick)
+        x1 = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)[5]
+        x2 = get_bullets_future_pos(me:visible(), prev_bullet_pos, 1)[5]
+        P = { me:pos():x(), me:pos():y() }
+        print("x1 = ", x1[1], x1[2])
+        print("x2 = ", x2[1], x2[2])
+        print("P = ", P[1], P[2])
+        print("P' = ", get_orthogonal_proj(x1, x2, P)[1], get_orthogonal_proj(x1, x2, P)[2])
+    end
 
     local me_pos = me:pos()
     -- Update cooldowns
