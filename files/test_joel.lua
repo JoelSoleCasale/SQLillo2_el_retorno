@@ -49,6 +49,29 @@ function get_orthogonal_proj(x1, x2, p)
     return { pb_x, pb_y }
 end
 
+function bullet_collision(cp, np, p)
+    -- cp: current bullet position (array)
+    -- np: next bullet position (array)
+    -- p: future player position (array)
+    local player_radius = 1
+    local proj = get_orthogonal_proj(cp, np, p)
+    -- if proj is not on the line segment, make proj the closest point on the line segment
+    if proj[1] < math.min(cp[1], np[1]) then
+        proj[1] = math.min(cp[1], np[1])
+    elseif proj[1] > math.max(cp[1], np[1]) then
+        proj[1] = math.max(cp[1], np[1])
+    end
+    if proj[2] < math.min(cp[2], np[2]) then
+        proj[2] = math.min(cp[2], np[2])
+    elseif proj[2] > math.max(cp[2], np[2]) then
+        proj[2] = math.max(cp[2], np[2])
+    end
+
+    local dist = vec.distance(proj, p)
+
+    return dist <= player_radius
+end
+
 -- Main bot function
 function bot_main(me)
     gametick = gametick + 1
