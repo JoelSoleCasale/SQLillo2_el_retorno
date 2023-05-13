@@ -72,6 +72,22 @@ function bullet_collision(cp, np, p)
     return dist <= player_radius
 end
 
+function pos_bullet_collision(p, bullet_pos, future_pos)
+    -- p: future player position (array)
+    -- bullet_pos: bullet positions (array)
+    -- future_pos: future bullet positions (array)
+    -- returns 0 and 1
+    for id, cp in pairs(bullet_pos) do
+        local np = future_pos[id]
+        if np ~= nil then
+            if bullet_collision(cp, np, p) then
+                return 1
+            end
+        end
+    end
+    return 0
+end
+
 -- Main bot function
 function bot_main(me)
     gametick = gametick + 1
@@ -99,15 +115,16 @@ function bot_main(me)
     local min_distance = math.huge
     for _, player in ipairs(me:visible()) do
         local dist = vec.distance(me_pos, player:pos())
-        if dist < min_distance then
+        if dist < min_distance and player:type() == "player" then
             min_distance = dist
             closest_enemy = player
         end
     end
     -- Set target to closest visible enemy
     local target = closest_enemy
+    local direction = nil
     if target then
-        local direction = vec.new(0, 1)
+        direction = target:pos():sub(me_pos)
         -- If target is within melee range and melee attack is not on cooldown, use melee atif min_distance <= 2 and cooldowns[3] == 0 then
         me:cast(2, direction)
         cooldowns[3] = 50
