@@ -1,9 +1,10 @@
 -- Global variables
-local tick = 0
-local center = vec.new(250,250)
-local LAMB = 1
-local DASH = 100
-local MELE_PEN = 100
+local tick = 0 -- current tick
+local center = vec.new(250,250) -- center of the map
+local LAMB = 1 -- coefficient of the CoD score
+local DASH = 100 -- penalty for dashing
+local MELE_PEN = 100 -- penalty for being too close to an enemy
+local N = 8 -- number of directions
 -- Initialize bot
 function bot_init(me)
 end
@@ -56,7 +57,7 @@ end
 
 function score(pos, d,  me)
     -- Returns the score of a given position
-    return LAMB * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + DASH*d
+    return LAMB * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) - DASH*d
 end
 
 function next_move(me, n)
@@ -99,11 +100,11 @@ end
 
 -- Main bot function
 function bot_main(me)
-    local move = next_move(me, 128)
+    local move = next_move(me, N)
 
     if move[2] then
         me:cast(1, move[1])
-        move = next_move(me, 128)
+        move = next_move(me, N)
     end
     me:move(move[1])
    
