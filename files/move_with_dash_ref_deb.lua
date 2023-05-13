@@ -2,8 +2,8 @@
 local tick = 0 -- current tick
 local center = vec.new(250,250) -- center of the map
 local LAMB = 1 -- coefficient of the CoD score
-local DASH_PEN = -100 -- penalty for dashing
-local MELE_PEN = -100 -- penalty for being too close to an enemy
+local DASH = 100 -- penalty for dashing
+local MELE_PEN = 100 -- penalty for being too close to an enemy
 local N = 8 -- number of directions
 -- Initialize bot
 function bot_init(me)
@@ -28,7 +28,7 @@ function dist_to_scr(dist)
     -- Returns the score related to the distance 
     local log_dist = math.log(dist)
     if dist <= 2 then
-        return log_dist + MELE_PEN
+        return log_dist - MELE_PEN
     end
     return log_dist
 end
@@ -42,9 +42,16 @@ end
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
     local r = cod:radius()/2 -- cod radius
+    print("RADIUS", r)
+
+    if r == 150 then
+     print("TICK", tick)
+    end
     
     
     if tick < 870 then
+        print(" -> dist: ", vec.distance(pos, center))
+        print(" -> line: ", -5*tick/8+630)
         if vec.distance(pos, center) > -5*tick/8+630 then
             return -tick*vec.distance(pos, center)
         else
@@ -60,7 +67,7 @@ end
 
 function score(pos, d,  me)
     -- Returns the score of a given position
-    return LAMB * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + DASH_PEN*d
+    return LAMB * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + DASH*d
 end
 
 function next_move(me, n)
@@ -103,6 +110,7 @@ end
 
 -- Main bot function
 function bot_main(me)
+    print("tick: ", tick)
     local move = next_move(me, N)
 
     if move[2] then
