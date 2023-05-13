@@ -1,9 +1,9 @@
 -- Global variables
 local tick = 0
 local center = vec.new(250,250)
-local lamb = 1
-local dash = 100
-local mele_pen = 100
+local LAMB = 1
+local DASH = 100
+local MELE_PEN = 100
 -- Initialize bot
 function bot_init(me)
 end
@@ -27,7 +27,7 @@ function dist_to_scr(dist)
     -- Returns the score related to the distance 
     local log_dist = math.log(dist)
     if dist <= 2 then
-        return log_dist - mele_pen
+        return log_dist - MELE_PEN
     end
     return log_dist
 end
@@ -56,7 +56,7 @@ end
 
 function score(pos, d,  me)
     -- Returns the score of a given position
-    return lamb * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + dash*d
+    return LAMB * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + DASH*d
 end
 
 function next_move(me, n)
