@@ -12,7 +12,7 @@ local N = 8 -- number of directions
 local SHOOT_RANGE = 120 -- range of the gun
 local MARGIN = 0.9
 local prev_bullet_pos = nil
-local HIT_PENALTY = { -100000, -0.5 }
+local HIT_PENALTY = { -100000, -5000 }
 local HIT_RADIUS = { 1.05, 1.5 }
 
 -- Constants
