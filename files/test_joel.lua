@@ -2,39 +2,51 @@
 local target = nil
 local cooldowns = { 0, 0, 0 }
 local gametick = 0
-local prev_entities = nil
+local prev_bullet_pos = nil
 -- Initialize bot
 function bot_init(me)
 end
 
-function display_entities(entities, prev)
-    local str = ""
+function display_entities(entities)
     for _, entity in ipairs(entities) do
         print(entity:id() .. ": " .. entity:type() .. " " .. entity:pos():x() .. " " .. entity:pos():y())
-        -- if prev is not nil then show prev
-        if prev then
-            local prev_entity = prev[entity:id()]
-            if prev_entity then
-                local prev_type = prev_entity[1]
-                local prev_x = prev_entity[2]
-                local prev_y = prev_entity[3]
-                local prev_pos = vec.new(prev_x, prev_y)
-                local prev_dist = vec.distance(prev_pos, entity:pos())
-                print("prev: " .. entity:id() .. ": " .. prev_type .. " " .. prev_x .. " " .. prev_y .. " " .. prev_dist)
+    end
+end
+
+function display_pos(pos, prefix)
+    for id, p in pairs(pos) do
+        print(prefix .. id .. ": " .. p[1] .. " " .. p[2])
+    end
+end
+
+function get_bullets_future_pos(entities, prev_entities, t)
+    fut_pos = {}
+    for _, bullet in ipairs(entities) do
+        if bullet:type() == "small_proj" then
+            local prev_bullet = prev_entities[bullet:id()]
+            if prev_bullet ~= nil then
+                local v_x = bullet:pos():x() - prev_bullet[1]
+                local v_y = bullet:pos():y() - prev_bullet[2]
+                local fut_x = bullet:pos():x() + v_x * t
+                local fut_y = bullet:pos():y() + v_y * t
+                fut_pos[bullet:id()] = { fut_x, fut_y }
             end
         end
     end
-    print(str)
+    return fut_pos
 end
 
 -- Main bot function
 function bot_main(me)
     gametick = gametick + 1
 
-    if gametick % 100 == 0 then
-        print("tick " .. gametick)
-        display_entities(me:visible(), prev_entities)
-    end
+    -- if gametick % 100 == 0 then
+    --     print("=====\ntick " .. gametick)
+    --     display_entities(me:visible())
+    --     display_pos(prev_bullet_pos, "prev: ")
+    --     display_pos(get_bullets_future_pos(me:visible(), prev_bullet_pos, 1), "fut 1: ")
+    --     display_pos(get_bullets_future_pos(me:visible(), prev_bullet_pos, 2), "fut 2: ")
+    -- end
 
     local me_pos = me:pos()
     -- Update cooldowns
@@ -67,8 +79,10 @@ function bot_main(me)
     -- Move towards the target
     me:move(direction)
 
-    prev_entities = {}
+    prev_bullet_pos = {}
     for _, entity in ipairs(me:visible()) do
-        prev_entities[entity:id()] = { entity:type(), entity:pos():x(), entity:pos():y() }
+        if entity:type() == "small_proj" then
+            prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
+        end
     end
 end
