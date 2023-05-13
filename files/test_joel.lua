@@ -8,7 +8,7 @@ local HIT_PENALTY = { -1, -0.5 }
 local HIT_RADIUS = { 1.05, 1.5 }
 
 -- Constants
-local PLAYER_SPEED = 0.65999895334244
+local PLAYER_SPEED = 1
 
 -- Initialize bot
 function bot_init(me)
@@ -81,12 +81,7 @@ function score(pos, lamb, dash, me, bullet_pos, future_pos)
 end
 
 function next_move(me, n, lamb, dash)
-    local bullet_pos = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)
-    local future_pos = {}
-    for t = 1, #HIT_RADIUS do
-        -- append at the end of future_pos
-        table.insert(future_pos, get_bullets_future_pos(me:visible(), prev_bullet_pos, t))
-    end
+    
 
     local best_move = vec.new(0, 0);
     local best_score = score(me:pos(), lamb, 0, me, bullet_pos, future_pos)
