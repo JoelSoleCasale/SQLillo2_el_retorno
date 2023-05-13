@@ -5,6 +5,7 @@ local LAMB = 1 -- coefficient of the CoD score
 local DASH = 100 -- penalty for dashing
 local MELE_PEN = 100 -- penalty for being too close to an enemy
 local N = 8 -- number of directions
+local MARGIN = 0.9
 -- Initialize bot
 function bot_init(me)
 end
