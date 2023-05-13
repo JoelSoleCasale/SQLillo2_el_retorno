@@ -6,6 +6,7 @@ local prev_bullet_pos = nil
 local prev_health = 100
 local HIT_PENALTY = { -1, -0.5 }
 local HIT_RADIUS = { 1.05, 1.5 }
+local DASH_PEN = -0.1
 
 -- Constants
 local PLAYER_SPEED = 0.65999895334244
@@ -72,7 +73,7 @@ end
 
 function score(pos, lamb, dash, me, bullet_pos, future_pos)
     -- Returns the score of a given position
-    local hit_penalty = 0
+    local hit_penalty = dash * DASH_PEN
     for id, p in pairs(HIT_PENALTY) do
         hit_penalty = hit_penalty +
             p * pos_bullet_collision({ pos:x(), pos:y() }, bullet_pos, future_pos[id], HIT_RADIUS[id])
@@ -108,7 +109,7 @@ function next_move(me, n, lamb, dash)
         end
         if me:cooldown(1) <= 0 then
             new_pos = me_pos:add(vec.new(move:x() * 10, move:y() * 10))
-            new_score = score(new_pos, lamb, dash, me, bullet_pos, future_pos)
+            new_score = score(new_pos, lamb, 1, me, bullet_pos, future_pos)
             if new_score > best_score then
                 best_score = new_score
                 best_move = move
@@ -116,6 +117,21 @@ function next_move(me, n, lamb, dash)
             end
         end
     end
+    -- move_center is a vector that points to the center of the circle (250, 250)
+    local move_center = vec.new(250 - me:pos():x(), 250 - me:pos():y())
+    mul_coef = PLAYER_SPEED / math.sqrt(move_center:x() * move_center:x() + move_center:y() * move_center:y())
+    move_center = vec.new(move_center:x() * mul_coef, move_center:y() * mul_coef)
+
+    local new_pos = me_pos:add(move_center)
+    local new_score = score(new_pos, lamb, 0, me, bullet_pos, future_pos)
+
+    if new_score >= best_score then
+        print("¿" .. gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        best_score = new_score
+        best_move = move_center
+        ds = false
+    end
+
     if best_score < 0 then
         print("¿" .. gametick .. string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
     end
