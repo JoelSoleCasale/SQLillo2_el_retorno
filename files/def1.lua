@@ -8,8 +8,9 @@ local bullet_pos = {} -- position of the bullets
 local LAMB = 100 -- coefficient of the CoD score
 local DASH_PEN = -100 -- penalty for dashing
 local MELE_PEN = -100 -- penalty for being too close to an enemy
-local N = 8 -- number of directions
-local SHOOT_RANGE = 120 -- range of the gun
+local N = 128 -- number of directions
+local SHOOT_RANGE = 16 -- range to be careful with dash
+local SAFE_RANGE = 45 -- safe range for the gun
 local MARGIN = 0.9
 local prev_bullet_pos = nil
 local HIT_PENALTY = { -100000, -5000 }
@@ -176,6 +177,11 @@ function next_move(me, n)
     
 end
 
+function shoot(me, closest)
+    -- Shoots the closest enemy
+    me:cast(0, closest[2]:pos():sub(me:pos()))
+end
+
 function try_to_cast(me)
     if me:cooldown(2) < 1 then
         if get_dist(me:pos(), me:visible(), false) < 2 then
@@ -183,10 +189,11 @@ function try_to_cast(me)
             return
         end
     end
-    if me:cooldown(0) < 1 then
+    if me:cooldown(0) < 1 then 
         local closest = get_dist(me:pos(), me:visible(), true)
-        if closest[1] < SHOOT_RANGE then
-            me:cast(0, closest[2]:pos():sub(me:pos()))
+        -- If it too close or far enough, shoot
+        if closest[1] < SHOOT_RANGE or closest[1] > SAFE_RANGE then
+            shoot(me, closest)
             return
         end
     end
