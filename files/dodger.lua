@@ -9,7 +9,8 @@ local HIT_RADIUS = { 1.05, 1.5 }
 local DASH_PEN = -0.1
 
 -- Constants
-local PLAYER_SPEED = 0.65999895334244
+local PLAYER_SPEED = 1
+local SHOOT_RANGE = 2
 
 -- Initialize bot
 function bot_init(me)
@@ -118,7 +119,11 @@ function next_move(me, n, lamb, dash)
         end
     end
     -- move_center is a vector that points to the center of the circle (250, 250)
-    local move_center = vec.new(250 - me:pos():x(), 250 - me:pos():y())
+    local center = vec.new(me:cod():x(), me:cod():y())
+    if center:x() == -1 then
+        center = vec.new(250, 250)
+    end
+    local move_center = vec.new(center:x() - me:pos():x(), center:y() - me:pos():y())
     mul_coef = PLAYER_SPEED / math.sqrt(move_center:x() * move_center:x() + move_center:y() * move_center:y())
     move_center = vec.new(move_center:x() * mul_coef, move_center:y() * mul_coef)
 
@@ -138,6 +143,41 @@ function next_move(me, n, lamb, dash)
     return { best_move, ds }
 end
 
+function get_dist(pos, obs, player)
+    -- Returns the distance to the closest enemy
+    local min_distance = math.huge -- initial value
+    local closest_player = nil
+    for _, object in ipairs(obs) do
+        if object:type() == "player" then
+            local dist = vec.distance(pos, object:pos())
+            if dist < min_distance then
+                min_distance = dist
+                closest_player = object
+            end
+        end
+    end
+    if player then
+        return { min_distance, closest_player }
+    end
+    return min_distance
+end
+
+function try_to_cast(me)
+    if me:cooldown(2) < 1 then
+        if get_dist(me:pos(), me:visible(), false) < 2 then
+            me:cast(2, me:pos())
+            return
+        end
+    end
+    if me:cooldown(0) < 1 then
+        local closest = get_dist(me:pos(), me:visible(), true)
+        if closest[1] < SHOOT_RANGE then
+            me:cast(0, closest[2]:pos():sub(me:pos()))
+            return
+        end
+    end
+end
+
 -- Main bot function
 function bot_main(me)
     local move = next_move(me, 128, 200, -100)
@@ -145,6 +185,8 @@ function bot_main(me)
     if gametick % 100 == 0 then
         print("¿" .. gametick .. " health: " .. me:health())
     end
+
+    try_to_cast(me)
 
     if move[2] then
         me:cast(1, move[1])

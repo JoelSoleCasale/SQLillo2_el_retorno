@@ -12,4 +12,4 @@ do
 done
 
 # Run the Docker command
-eval "$COMMAND $FILE_ARGUMENTS | grep ?"
+eval "$COMMAND $FILE_ARGUMENTS"
