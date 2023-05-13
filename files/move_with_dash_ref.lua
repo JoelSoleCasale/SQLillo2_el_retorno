@@ -83,7 +83,7 @@ function next_move(me, n)
             best_move = move
             ds = false
         end
-        if me:cooldown(1) == 0 then
+        if me:cooldown(1)  < 1 then
             new_pos = me_pos:add(vec.new(move:x()*10, move:y()*10))
             new_score = score(new_pos, 1, me)
             if new_score > best_score then

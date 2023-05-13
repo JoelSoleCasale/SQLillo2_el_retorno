@@ -80,7 +80,7 @@ function next_move(me, n)
             best_move = move
             ds = false
         end
-        if me:cooldown(1) == 0 then
+        if me:cooldown(1) < 1 then
             new_pos = me_pos:add(vec.new(move:x()*10, move:y()*10))
             new_score = score(new_pos, 1, me)
             if new_score > best_score then
@@ -96,17 +96,6 @@ function next_move(me, n)
     
 end
 
-function num_pla(obs)
-    -- Returns the number of players still alive
-    local num = 0
-    for _, object in ipairs(obs) do
-        if object:type() == "player" then
-            num = num + 1
-        end
-    end
-    return num
-end
-
 
 
 -- Main bot function
@@ -119,8 +108,5 @@ function bot_main(me)
     end
     me:move(move[1])
 
-    num_players = num_pla(me:visible())
-   
-    print("###NUMBER OF PLAYERS STILL ALIVE (JJ2)==",num_players)
     tick = tick + 1
 end
