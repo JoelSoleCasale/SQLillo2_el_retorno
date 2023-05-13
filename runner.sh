@@ -1,6 +1,6 @@
 #!/bin/bash
 
-N=10
+N=8
 FILE="files/dummy.lua"
 COMMAND="docker run -v $(pwd)/files:/files --rm -it tarasyarema/sqlillo"
 
@@ -12,4 +12,4 @@ do
 done
 
 # Run the Docker command
-eval "$COMMAND $FILE_ARGUMENTS"
+eval "$COMMAND $FILE_ARGUMENTS | grep ?"

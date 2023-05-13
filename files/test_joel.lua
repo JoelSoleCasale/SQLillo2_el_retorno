@@ -4,6 +4,8 @@ local cooldowns = { 0, 0, 0 }
 local gametick = 0
 local prev_bullet_pos = nil
 local prev_health = 100
+local HIT_PENALTY = { -1000, -20, -2 }
+local HIT_RADIUS = { 1.05, 1.5, 2 }
 
 -- Initialize bot
 function bot_init(me)
@@ -39,24 +41,10 @@ function get_bullets_future_pos(entities, prev_entities, t)
     return fut_pos
 end
 
-function get_orthogonal_proj(x1, x2, p)
-    local v_x = x2[1] - x1[1]
-    local v_y = x2[2] - x1[2]
-    local w_x = p[1] - x1[1]
-    local w_y = p[2] - x1[2]
-    local c1 = v_x * w_x + v_y * w_y
-    local c2 = v_x * v_x + v_y * v_y
-    local b = c1 / c2
-    local pb_x = x1[1] + b * v_x
-    local pb_y = x1[2] + b * v_y
-    return { pb_x, pb_y }
-end
-
-function bullet_collision(cp, np, p)
+function bullet_collision(cp, np, p, player_radius)
     -- cp: current bullet position (array)
     -- np: next bullet position (array)
     -- p: future player position (array)
-    local player_radius = 1.1
 
     local dist = (np[1] - p[1]) * (np[1] - p[1]) + (np[2] - p[2]) * (np[2] - p[2])
     local dist2 = (cp[1] - p[1]) * (cp[1] - p[1]) + (cp[2] - p[2]) * (cp[2] - p[2])
@@ -71,7 +59,7 @@ function pos_bullet_collision(p, bullet_pos, future_pos)
     for id, cp in pairs(bullet_pos) do
         local np = future_pos[id]
         if np ~= nil then
-            if bullet_collision(cp, np, p) then
+            if bullet_collision(cp, np, p, 1.05) then
                 return 1
             end
         end
@@ -98,13 +86,13 @@ function next_move(me, n, lamb, dash)
     local ang = 2 * math.pi / n
 
     for i = 1, n do
-        local move_step = 0.66
+        local move_step = 0.65999895334244
         local move = vec.new(math.cos(ang * i) * move_step, math.sin(ang * i) * move_step)
         local new_pos = me_pos:add(move)
         local new_score = score(new_pos, lamb, 0, me, bullet_pos, future_pos)
 
         if new_score > best_score then
-            print(gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("?" .. gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             best_score = new_score
             best_move = move
             ds = false
@@ -120,7 +108,7 @@ function next_move(me, n, lamb, dash)
         end
     end
     if best_score < 0 then
-        print(gametick..string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
+        print("?" .. gametick .. string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
     end
     return { best_move, ds }
 end
@@ -144,7 +132,7 @@ function bot_main(me)
     end
 
     if me:health() < prev_health - 2 then
-        print(gametick .. "====================================I got hit!" ..
+        print("?" .. gametick .. "====================================I got hit!" ..
             me:health() .. "==========================================")
     end
     prev_health = me:health()
