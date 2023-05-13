@@ -66,7 +66,7 @@ end
 function next_move(me, n, lamb, dash)
 
     local best_move = vec.new(0, 0);
-    local best_score = -math.huge
+    local best_score = score(me:pos(), lamb, 0, me)
     local me_pos = me:pos()
     local ds = false
 
@@ -113,6 +113,9 @@ function bot_main(me)
     end
     me:move(move[1])
    
+    if not cast then
+        cooldowns[1] = 100
+    end
     
     tick = tick + 1
 end
