@@ -122,7 +122,7 @@ end
 -- Main bot function
 function bot_main(me)
     if me:cod():x() ~= -1 then
-        center = me:cod():pos()
+        center = vec.new(me:cod():x(), me:cod():y())
     end
 
     local move = next_move(me, N)
