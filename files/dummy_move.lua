@@ -4,7 +4,7 @@ local cooldowns = {0, 0, 0}
 function bot_init(me)
 end
 
-function closest_player(pos, obs)
+function dist_score(pos, obs)
 
     local min_distance = math.huge -- initial value
     for _, object in ipairs(obs) do
@@ -24,7 +24,29 @@ function cod_score(pos, obs )
 end
 
 function score(pos, lamb, obs)
-    return lamb * cod_score(pos, obs) - closest_player(pos, obs)
+    return lamb * cod_score(pos, obs) + math.log(dist_score(pos, obs))
+    
+end
+
+function next_move(me, n)
+
+    local best_move = vec.new(0, 0);
+    local best_score = -math.huge
+    local me_pos = me:pos()
+
+    local ang = 2 * math.pi / n
+
+    for i = 1, n do
+        local move = vec.new(math.cos(ang * i), math.sin(ang * i))
+        local new_pos = move:add(me_pos)
+        local new_score = score(new_pos, 1, me:visible())
+        if new_score > best_score then
+            best_score = new_score
+            best_move = move
+        end
+    end
+
+    return best_move
     
 end
 
@@ -56,6 +78,6 @@ end
 
 -- Main bot function
 function bot_main(me)
-    local min_dist = closest_player(me:pos(), me:visible())
-    print(min_dist)
+    local move = next_move(me, 8)
+    me:move(move)
 end
