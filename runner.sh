@@ -1,7 +1,7 @@
 #!/bin/bash
 
-N=20
-FILE="files/dummy_move.lua"
+N=2
+FILE="files/test_joel.lua"
 COMMAND="docker run -v $(pwd)/files:/files --rm -it tarasyarema/sqlillo"
 
 # Generate the repeated file arguments
