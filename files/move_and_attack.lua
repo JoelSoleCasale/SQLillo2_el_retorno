@@ -54,8 +54,6 @@ end
 
 function score(pos, lamb, dash, me)
     -- Returns the score of a given position
-    local a = lamb * cod_score(pos, me:cod())
-    local b = dist_score(pos, me:visible(), me)
     return lamb * cod_score(pos, me:cod()) + dist_score(pos, me:visible(), me) + dash
 end
 
