@@ -6,8 +6,8 @@ local center = vec.new(250,250)
 function bot_init(me)
 end
 
-function dist_score(pos, obs)
-    -- Returns the score related to the distance to the closest enemy
+function get_dist(pos, obs)
+    -- Returns the distance to the closest enemy
     local min_distance = math.huge -- initial value
     for _, object in ipairs(obs) do
         if object:type() == "player" then
@@ -18,22 +18,27 @@ function dist_score(pos, obs)
         end
 
     end
-    if min_distance == math.huge then
-        return 0
-    end
+    return min_distance
+end
 
-    if min_distance < 20 then
-        return 0.01*min_distance
-    elseif min_distance < 50 then
-        return 20*0.01 + min_distance
+function dist_to_scr(dist, mele_pen)
+    -- Returns the score related to the distance 
+    local log_dist = math.log(dist)
+    if dist <= 2 then
+        return log_dist - mele_pen
     end
-    return 50 + 0.01*min_distance
+    return log_dist
+end
+
+function dist_score(pos, obs)
+    -- Returns the score related to the distance to the closest enemy 
+    return dist_to_scr(get_dist(pos, obs), 100)
+
 end
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = cod:radius() -- cod radius
-    print(r)
+    local r = cod:radius()/2 -- cod radius
     
     if tick < 500 then
         return 0
@@ -42,12 +47,16 @@ function cod_score(pos, cod)
     elseif vec.distance(pos, center) > r then
         return -tick*vec.distance(pos, center)
     else
+        print("  -> Radio: ", r)
+        print("  -> Dista: ", vec.distance(pos, center))
         return -1
     end
     
 end
 
 function score(pos, lamb, me)
+    print("cod_score: ", cod_score(pos, me:cod()))
+    print("dist_score: ", dist_score(pos, me:visible()))
     return lamb * cod_score(pos, me:cod()) + dist_score(pos, me:visible())
 end
 
@@ -62,7 +71,7 @@ function next_move(me, n)
     for i = 1, n do
         local move = vec.new(math.cos(ang * i), math.sin(ang * i))
         local new_pos = move:add(me_pos)
-        local new_score = score(new_pos, 180, me)
+        local new_score = score(new_pos, 200, me)
         if new_score > best_score then
             best_score = new_score
             best_move = move
@@ -77,7 +86,6 @@ end
 -- Find the best move for the bot
 function best_move(me)
     local me_pos = me:pos()
-
 
     local min_distance = 10000000
     local closest_enemy = nil
@@ -102,7 +110,8 @@ end
 
 -- Main bot function
 function bot_main(me)
-    local move = next_move(me, 16)
+    print("###### tick: ", tick)
+    local move = next_move(me, 8)
     me:move(move)
     tick = tick + 1
 end
