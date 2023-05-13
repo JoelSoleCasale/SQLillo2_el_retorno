@@ -3,8 +3,11 @@ local target = nil
 local cooldowns = { 0, 0, 0 }
 local gametick = 0
 local prev_bullet_pos = nil
+local prev_health = 100
+
 -- Initialize bot
 function bot_init(me)
+    prev_health = me:health()
 end
 
 function display_entities(entities)
@@ -53,23 +56,11 @@ function bullet_collision(cp, np, p)
     -- cp: current bullet position (array)
     -- np: next bullet position (array)
     -- p: future player position (array)
-    local player_radius = 1
-    local proj = get_orthogonal_proj(cp, np, p)
-    -- if proj is not on the line segment, make proj the closest point on the line segment
-    if proj[1] < math.min(cp[1], np[1]) then
-        proj[1] = math.min(cp[1], np[1])
-    elseif proj[1] > math.max(cp[1], np[1]) then
-        proj[1] = math.max(cp[1], np[1])
-    end
-    if proj[2] < math.min(cp[2], np[2]) then
-        proj[2] = math.min(cp[2], np[2])
-    elseif proj[2] > math.max(cp[2], np[2]) then
-        proj[2] = math.max(cp[2], np[2])
-    end
+    local player_radius = 1.1
 
-    local dist = vec.distance(proj, p)
-
-    return dist <= player_radius
+    local dist = (np[1] - p[1]) * (np[1] - p[1]) + (np[2] - p[2]) * (np[2] - p[2])
+    local dist2 = (cp[1] - p[1]) * (cp[1] - p[1]) + (cp[2] - p[2]) * (cp[2] - p[2])
+    return (dist <= player_radius * player_radius) or (dist2 <= player_radius * player_radius)
 end
 
 function pos_bullet_collision(p, bullet_pos, future_pos)
@@ -88,52 +79,62 @@ function pos_bullet_collision(p, bullet_pos, future_pos)
     return 0
 end
 
+function score(pos, lamb, dash, me, bullet_pos, future_pos)
+    -- Returns the score of a given position
+    return -1 * pos_bullet_collision({ pos:x(), pos:y() }, bullet_pos, future_pos[1]) +
+        -0.5 * pos_bullet_collision({ pos:x(), pos:y() }, bullet_pos, future_pos[2])
+end
+
+function next_move(me, n, lamb, dash)
+    local bullet_pos = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)
+    local future_pos = { get_bullets_future_pos(me:visible(), prev_bullet_pos, 1),
+        get_bullets_future_pos(me:visible(), prev_bullet_pos, 2) }
+
+    local best_move = vec.new(0, 0);
+    local best_score = score(me:pos(), lamb, 0, me, bullet_pos, future_pos)
+    local me_pos = me:pos()
+    local ds = false
+
+    local ang = 2 * math.pi / n
+
+    for i = 1, n do
+        local move_step = 0.66
+        local move = vec.new(math.cos(ang * i) * move_step, math.sin(ang * i) * move_step)
+        local new_pos = me_pos:add(move)
+        local new_score = score(new_pos, lamb, 0, me, bullet_pos, future_pos)
+
+        if new_score > best_score then
+            print(gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            best_score = new_score
+            best_move = move
+            ds = false
+        end
+        if me:cooldown(1) == 0 then
+            new_pos = me_pos:add(vec.new(move:x() * 10, move:y() * 10))
+            new_score = score(new_pos, lamb, dash, me, bullet_pos, future_pos)
+            if new_score > best_score then
+                best_score = new_score
+                best_move = move
+                ds = true
+            end
+        end
+    end
+    if best_score < 0 then
+        print(gametick..string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
+    end
+    return { best_move, ds }
+end
+
 -- Main bot function
 function bot_main(me)
-    gametick = gametick + 1
+    local move = next_move(me, 128, 200, -100)
 
-    -- if gametick % 100 == 0 and prev_bullet_pos[5] then
-    --     print("=====\ntick " .. gametick)
-    --     x1 = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)[5]
-    --     x2 = get_bullets_future_pos(me:visible(), prev_bullet_pos, 1)[5]
-    --     P = { me:pos():x(), me:pos():y() }
-    --     print("x1 = ", x1[1], x1[2])
-    --     print("x2 = ", x2[1], x2[2])
-    --     print("P = ", P[1], P[2])
-    --     print("P' = ", get_orthogonal_proj(x1, x2, P)[1], get_orthogonal_proj(x1, x2, P)[2])
-    -- end
-
-    local me_pos = me:pos()
-    -- Update cooldowns
-    for i = 1, 3 do
-        if cooldowns[i] > 0 then
-            cooldowns[i] = cooldowns[i] - 1
-        end
+    if move[2] then
+        me:cast(1, move[1])
+        cast = true
+        move = next_move(me, 128, 200, -100)
     end
-    -- Find the closest visible enemy
-    local closest_enemy = nil
-    local min_distance = math.huge
-    for _, player in ipairs(me:visible()) do
-        local dist = vec.distance(me_pos, player:pos())
-        if dist < min_distance and player:type() == "player" then
-            min_distance = dist
-            closest_enemy = player
-        end
-    end
-    -- Set target to closest visible enemy
-    local target = closest_enemy
-    local direction = nil
-    if target then
-        direction = target:pos():sub(me_pos)
-        -- If target is within melee range and melee attack is not on cooldown, use melee atif min_distance <= 2 and cooldowns[3] == 0 then
-        me:cast(2, direction)
-        cooldowns[3] = 50
-        -- If target is not within melee range and projectile is not on cooldown, use projecelseif cooldowns[1] == 0 then
-        me:cast(0, direction)
-        cooldowns[1] = 1
-    end
-    -- Move towards the target
-    me:move(direction)
+    me:move(move[1])
 
     prev_bullet_pos = {}
     for _, entity in ipairs(me:visible()) do
@@ -141,4 +142,11 @@ function bot_main(me)
             prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
+
+    if me:health() < prev_health - 2 then
+        print(gametick .. "====================================I got hit!" ..
+            me:health() .. "==========================================")
+    end
+    prev_health = me:health()
+    gametick = gametick + 1
 end
