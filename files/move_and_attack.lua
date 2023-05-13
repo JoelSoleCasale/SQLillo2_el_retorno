@@ -1,11 +1,12 @@
 -- Global variables
 local tick = 0 -- current tick
 local center = vec.new(250,250) -- center of the map
-local LAMB = 1 -- coefficient of the CoD score
+local LAMB = 100 -- coefficient of the CoD score
 local DASH_PEN = -100 -- penalty for dashing
 local MELE_PEN = -100 -- penalty for being too close to an enemy
 local N = 8 -- number of directions
 local SHOOT_RANGE = 120 -- range of the gun
+local MARGIN = 0.9
 -- Initialize bot
 function bot_init(me)
 end
@@ -48,17 +49,11 @@ end
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = cod:radius()/2 -- cod radius
+    local r = MARGIN*cod:radius() -- cod radius
     
     
-    if tick < 870 then
-        if vec.distance(pos, center) > -5*tick/8+630 then
-            return -tick*vec.distance(pos, center)
-        else
-            return -1
-        end
-    elseif vec.distance(pos, center) > r then
-        return -tick*vec.distance(pos, center)
+    if vec.distance(pos, center) > r then
+        return -vec.distance(pos, center)
     else
         return -1
     end
@@ -126,8 +121,13 @@ end
 
 -- Main bot function
 function bot_main(me)
+    if me:cod():x() ~= -1 then
+        center = me:cod():pos()
+    end
+
     local move = next_move(me, N)
     local cast = false
+
 
     if move[2] then
         me:cast(1, move[1])
