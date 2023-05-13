@@ -24,6 +24,7 @@ function get_dist(pos, obs, me)
     return min_distance
 end
 
+
 function dist_to_scr(dist)
     -- Returns the score related to the distance 
     local log_dist = math.log(dist)
@@ -111,6 +112,5 @@ function bot_main(me)
     end
     me:move(move[1])
    
-    
     tick = tick + 1
 end

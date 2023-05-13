@@ -5,6 +5,7 @@ local LAMB = 1 -- coefficient of the CoD score
 local DASH = 100 -- penalty for dashing
 local MELE_PEN = 100 -- penalty for being too close to an enemy
 local N = 8 -- number of directions
+local num_players = 0
 -- Initialize bot
 function bot_init(me)
 end
@@ -95,6 +96,16 @@ function next_move(me, n)
     
 end
 
+function num_pla(obs)
+    -- Returns the number of players still alive
+    local num = 0
+    for _, object in ipairs(obs) do
+        if object:type() == "player" then
+            num = num + 1
+        end
+    end
+    return num
+end
 
 
 
@@ -107,7 +118,9 @@ function bot_main(me)
         move = next_move(me, N)
     end
     me:move(move[1])
+
+    num_players = num_pla(me:visible())
    
-    
+    print("###NUMBER OF PLAYERS STILL ALIVE (JJ2)==",num_players)
     tick = tick + 1
 end
