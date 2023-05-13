@@ -6,8 +6,7 @@ end
 
 function closest_player(pos, obs)
 
-    local min_distance = 1000 -- initial value
-
+    local min_distance = math.huge -- initial value
     for _, object in ipairs(obs) do
         if object:type() == "player" then
             local dist = vec.distance(pos, object:pos())
@@ -20,12 +19,12 @@ function closest_player(pos, obs)
     return min_distance
 end
 
-function CoD(pos, obs )
+function cod_score(pos, obs )
     return 1
 end
 
 function score(pos, lamb, obs)
-    return lamb * CoD(pos, obs) - closest_player(pos, obs)
+    return lamb * cod_score(pos, obs) - closest_player(pos, obs)
     
 end
 
