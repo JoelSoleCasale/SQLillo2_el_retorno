@@ -7,7 +7,7 @@ function bot_init(me)
 end
 
 function dist_score(pos, obs)
-    -- Returns the distance to the closest enemy
+    -- Returns the score related to the distance to the closest enemy
     local min_distance = math.huge -- initial value
     for _, object in ipairs(obs) do
         if object:type() == "player" then
@@ -23,11 +23,11 @@ function dist_score(pos, obs)
     end
 
     if min_distance < 20 then
-        return -20*min_distance
+        return 0.01*min_distance
     elseif min_distance < 50 then
-        return -min_distance
+        return 20*0.01 + min_distance
     end
-    return -0.01*min_distance
+    return 50 + 0.01*min_distance
 end
 
 function cod_score(pos, cod)
@@ -36,9 +36,9 @@ function cod_score(pos, cod)
     print(r)
     
     if tick < 500 then
-        return -tick
+        return 0
     elseif tick < 800 then
-        return -vec.distance(pos, center)
+        return -tick*vec.distance(pos, center)/2
     elseif vec.distance(pos, center) > r then
         return -tick*vec.distance(pos, center)
     else
