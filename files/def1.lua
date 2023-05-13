@@ -3,6 +3,7 @@ local tick = 0 -- current tick
 local center = vec.new(250,250) -- center of the map
 local future_pos = {} -- future position of the bullets
 local bullet_pos = {} -- position of the bullets
+local prev_bullet_pos = nil -- previous position of the bullets
 
 -- Hyperparameters
 local LAMB = 100 -- coefficient of the CoD score
@@ -11,13 +12,12 @@ local MELE_PEN = -100 -- penalty for being too close to an enemy
 local N = 128 -- number of directions
 local SHOOT_RANGE = 16 -- range to be careful with dash
 local SAFE_RANGE = 45 -- safe range for the gun
-local MARGIN = 0.9
-local prev_bullet_pos = nil
-local HIT_PENALTY = { -100000, -5000 }
-local HIT_RADIUS = { 1.05, 1.5 }
+local MARGIN = 0.9 -- margin for the CoD
+local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
+local HIT_RADIUS = { 1.05, 1.5 } -- radius of user for forecasting hits
 
 -- Constants
-local PLAYER_SPEED = 1
+local PLAYER_SPEED = 1 -- player speed
 
 
 -- Initialize bot
@@ -25,6 +25,10 @@ function bot_init(me)
 end
 
 
+
+--------------------------------------
+-- ########### DODGING ############ --
+--------------------------------------
 function get_bullets_future_pos(entities, prev_entities, t)
     local fut_pos = {}
     for _, bullet in ipairs(entities) do
@@ -42,6 +46,7 @@ function get_bullets_future_pos(entities, prev_entities, t)
     return fut_pos
 end
 
+
 function pos_bullet_collision(p, bullet_pos, future_pos, rad_hitbox)
     -- p: future player position (array)
     -- bullet_pos: bullet positions (array)
@@ -58,6 +63,7 @@ function pos_bullet_collision(p, bullet_pos, future_pos, rad_hitbox)
     return 0
 end
 
+
 function bullet_collision(cp, np, p, player_radius)
     -- cp: current bullet position (array)
     -- np: next bullet position (array)
@@ -68,8 +74,14 @@ function bullet_collision(cp, np, p, player_radius)
     return (dist <= player_radius * player_radius) or (dist2 <= player_radius * player_radius)
 end
 
+
+
+--------------------------------------
+-- ########### SCORING ############ --
+--------------------------------------
+
 function score_bull(pos, me)
-    -- Returns the score of a given position
+    -- Returns the score of a given position based on bullets
     local hit_penalty = 0
     for id, p in pairs(HIT_PENALTY) do
         hit_penalty = hit_penalty +
@@ -77,6 +89,42 @@ function score_bull(pos, me)
     end
     return hit_penalty
 end
+
+
+function dist_score(pos, obs)
+    -- Returns the score related to the distance to the closest enemy 
+    return dist_to_scr(get_dist(pos, obs, false))
+
+end
+
+
+function cod_score(pos, cod)
+    -- Returns the score related to the CoD
+    local r = MARGIN*cod:radius() -- cod radius
+    
+    
+    if vec.distance(pos, center) > r then
+        return -vec.distance(pos, center)
+    else
+        return -1
+    end
+    
+end
+
+
+function score(pos, d,  me)
+    -- Returns the score of a given position
+    return LAMB * cod_score(pos, me:cod()) +
+            dist_score(pos, me:visible()) +
+            DASH_PEN*d +
+            score_bull(pos, me)
+end
+
+
+
+--------------------------------------
+-- ##### Auxiliary Functions ###### --
+--------------------------------------
 
 function get_dist(pos, obs, player)
     -- Returns the distance to the closest enemy
@@ -108,32 +156,12 @@ function dist_to_scr(dist)
     return log_dist
 end
 
-function dist_score(pos, obs)
-    -- Returns the score related to the distance to the closest enemy 
-    return dist_to_scr(get_dist(pos, obs, false))
 
-end
 
-function cod_score(pos, cod)
-    -- Returns the score related to the CoD
-    local r = MARGIN*cod:radius() -- cod radius
-    
-    
-    if vec.distance(pos, center) > r then
-        return -vec.distance(pos, center)
-    else
-        return -1
-    end
-    
-end
 
-function score(pos, d,  me)
-    -- Returns the score of a given position
-    return LAMB * cod_score(pos, me:cod()) +
-            dist_score(pos, me:visible()) +
-            DASH_PEN*d +
-            score_bull(pos, me)
-end
+--------------------------------------
+-- ########### MOVING ############# --
+--------------------------------------
 
 function next_move(me, n)
 
@@ -177,6 +205,11 @@ function next_move(me, n)
     
 end
 
+
+
+--------------------------------------
+-- ########### ATACKING ########### --
+--------------------------------------
 function shoot(me, closest)
     -- Shoots the closest enemy
     me:cast(0, closest[2]:pos():sub(me:pos()))
