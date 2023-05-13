@@ -4,8 +4,8 @@ local cooldowns = { 0, 0, 0 }
 local gametick = 0
 local prev_bullet_pos = nil
 local prev_health = 100
-local HIT_PENALTY = { -1000, -20, -2 }
-local HIT_RADIUS = { 1.05, 1.5, 2 }
+local HIT_PENALTY = { -1, -0.5 }
+local HIT_RADIUS = { 1.05, 1.5 }
 
 -- Initialize bot
 function bot_init(me)
@@ -51,7 +51,7 @@ function bullet_collision(cp, np, p, player_radius)
     return (dist <= player_radius * player_radius) or (dist2 <= player_radius * player_radius)
 end
 
-function pos_bullet_collision(p, bullet_pos, future_pos)
+function pos_bullet_collision(p, bullet_pos, future_pos, rad_hitbox)
     -- p: future player position (array)
     -- bullet_pos: bullet positions (array)
     -- future_pos: future bullet positions (array)
@@ -59,7 +59,7 @@ function pos_bullet_collision(p, bullet_pos, future_pos)
     for id, cp in pairs(bullet_pos) do
         local np = future_pos[id]
         if np ~= nil then
-            if bullet_collision(cp, np, p, 1.05) then
+            if bullet_collision(cp, np, p, rad_hitbox) then
                 return 1
             end
         end
@@ -69,14 +69,21 @@ end
 
 function score(pos, lamb, dash, me, bullet_pos, future_pos)
     -- Returns the score of a given position
-    return -1 * pos_bullet_collision({ pos:x(), pos:y() }, bullet_pos, future_pos[1]) +
-        -0.5 * pos_bullet_collision({ pos:x(), pos:y() }, bullet_pos, future_pos[2])
+    local hit_penalty = 0
+    for id, p in pairs(HIT_PENALTY) do
+        hit_penalty = hit_penalty +
+            p * pos_bullet_collision({ pos:x(), pos:y() }, bullet_pos, future_pos[id], HIT_RADIUS[id])
+    end
+    return hit_penalty
 end
 
 function next_move(me, n, lamb, dash)
     local bullet_pos = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)
-    local future_pos = { get_bullets_future_pos(me:visible(), prev_bullet_pos, 1),
-        get_bullets_future_pos(me:visible(), prev_bullet_pos, 2) }
+    local future_pos = {}
+    for t = 1, #HIT_RADIUS do
+        -- append at the end of future_pos
+        table.insert(future_pos, get_bullets_future_pos(me:visible(), prev_bullet_pos, t))
+    end
 
     local best_move = vec.new(0, 0);
     local best_score = score(me:pos(), lamb, 0, me, bullet_pos, future_pos)
@@ -92,12 +99,12 @@ function next_move(me, n, lamb, dash)
         local new_score = score(new_pos, lamb, 0, me, bullet_pos, future_pos)
 
         if new_score > best_score then
-            print("?" .. gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("¿" .. gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             best_score = new_score
             best_move = move
             ds = false
         end
-        if me:cooldown(1) == 0 then
+        if me:cooldown(1) <= 0 then
             new_pos = me_pos:add(vec.new(move:x() * 10, move:y() * 10))
             new_score = score(new_pos, lamb, dash, me, bullet_pos, future_pos)
             if new_score > best_score then
@@ -108,7 +115,7 @@ function next_move(me, n, lamb, dash)
         end
     end
     if best_score < 0 then
-        print("?" .. gametick .. string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
+        print("¿" .. gametick .. string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
     end
     return { best_move, ds }
 end
@@ -116,6 +123,10 @@ end
 -- Main bot function
 function bot_main(me)
     local move = next_move(me, 128, 200, -100)
+
+    if gametick % 100 == 0 then
+        print("¿" .. gametick .. " health: " .. me:health())
+    end
 
     if move[2] then
         me:cast(1, move[1])
