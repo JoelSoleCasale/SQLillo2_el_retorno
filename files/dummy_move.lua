@@ -4,6 +4,32 @@ local cooldowns = {0, 0, 0}
 function bot_init(me)
 end
 
+function closest_player(pos, obs)
+
+    local min_distance = 1000 -- initial value
+
+    for _, object in ipairs(obs) do
+        if object:type() == "player" then
+            local dist = vec.distance(pos, object:pos())
+            if dist < min_distance then
+                min_distance = dist
+            end
+        end
+
+    end
+    return min_distance
+end
+
+function CoD(pos, obs )
+    return 1
+end
+
+function score(pos, lamb, obs)
+    return lamb * CoD(pos, obs) - closest_player(pos, obs)
+    
+end
+
+
 -- Find the best move for the bot
 function best_move(me)
     local me_pos = me:pos()
@@ -31,9 +57,6 @@ end
 
 -- Main bot function
 function bot_main(me)
-    local best_move = best_move(me)
-
-    
-    -- Move towards the target
-    me:move(best_move)
+    local min_dist = closest_player(me:pos(), me:visible())
+    print(min_dist)
 end
