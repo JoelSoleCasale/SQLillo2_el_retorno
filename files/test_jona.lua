@@ -25,14 +25,19 @@ function bot_main(me)
     end
     -- Set target to closest visible enemy
     local target = closest_enemy
+    local direction = {0, 0}
     if target then
-        local direction = target:pos():sub(me_pos)
+        direction = target:pos():sub(me_pos)
         -- If target is within melee range and melee attack is not on cooldown, use melee atif min_distance <= 2 and cooldowns[3] == 0 then
         me:cast(2, direction)
         cooldowns[3] = 50
         -- If target is not within melee range and projectile is not on cooldown, use projecelseif cooldowns[1] == 0 then
         me:cast(0, direction)
         cooldowns[1] = 1
+    end
+
+    if direction[1] == 0 and direction[2] == 0 then
+        direction = {1, 1}
     end
     -- Move towards the target
     me:move(direction)
