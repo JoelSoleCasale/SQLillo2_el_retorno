@@ -115,7 +115,7 @@ function bot_main(me)
     local min_distance = math.huge
     for _, player in ipairs(me:visible()) do
         local dist = vec.distance(me_pos, player:pos())
-        if dist < min_distance and player:id() == 0 then
+        if dist < min_distance then
             min_distance = dist
             closest_enemy = player
         end
@@ -133,7 +133,7 @@ function bot_main(me)
         cooldowns[1] = 1
     end
     -- Move towards the target
-    -- me:move(direction)
+    me:move(direction)
 
     prev_bullet_pos = {}
     for _, entity in ipairs(me:visible()) do
