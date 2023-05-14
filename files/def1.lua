@@ -1,25 +1,27 @@
 -- Global variables
-local tick = 0 -- current tick
-local center = vec.new(250,250) -- center of the map
-local future_pos = {} -- future position of the bullets
-local bullet_pos = {} -- position of the bullets
-local prev_bullet_pos = nil -- previous position of the bullets
+local tick = 0                   -- current tick
+local center = vec.new(250, 250) -- center of the map
+local future_pos = {}            -- future position of the bullets
+local bullet_pos = {}            -- position of the bullets
+local prev_bullet_pos = nil      -- previous position of the bullets
 
 -- Hyperparameters
-local LAMB = 100 -- coefficient of the CoD score
-local DASH_PEN = -100 -- penalty for dashing
-local MELE_PEN = -100 -- penalty for being too close to an enemy
-local N = 128 -- number of directions
-local SHOOT_RANGE = 16 -- range to be careful with dash
-local SAFE_RANGE = 45 -- safe range for the gun
-local MARGIN = 0.9 -- margin for the CoD
+local LAMB = 100                       -- coefficient of the CoD score
+local DASH_PEN = -100                  -- penalty for dashing
+local MELE_PEN = -100                  -- penalty for being too close to an enemy
+local N = 128                          -- number of directions
+local SHOOT_RANGE = 16                 -- range to be careful with dash
+local SAFE_RANGE = 45                  -- safe range for the gun
+local MARGIN = 0.9                     -- margin for the CoD
 local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
-local HIT_RADIUS = { 1.05, 1.5 } -- radius of user for forecasting hits
-local COLUMN_PENALTY = 2 -- penalty for being close to a column
+local HIT_RADIUS = { 1.05, 1.5 }       -- radius of user for forecasting hits
+local COLUMN_PENALTY = 2               -- penalty for being close to a column
+local WALL_MARGIN = 4
+local WALL_PENALTY = -100
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
-local COLUMNS = nil -- columns of the map
+local COLUMNS = nil    -- columns of the map
 
 
 --------------------------------------
@@ -31,7 +33,6 @@ function bot_init(me)
     COLUMNS = create_columns(me:visible())
 end
 
-
 function create_columns(obs)
     local columns = {}
     for _, object in ipairs(obs) do
@@ -41,8 +42,6 @@ function create_columns(obs)
     end
     return columns
 end
-
-
 
 --------------------------------------
 -- ########### DODGING ############ --
@@ -64,7 +63,6 @@ function get_bullets_future_pos(entities, prev_entities, t)
     return fut_pos
 end
 
-
 function pos_bullet_collision(p, bullet_pos, future_pos, rad_hitbox)
     -- p: future player position (array)
     -- bullet_pos: bullet positions (array)
@@ -81,7 +79,6 @@ function pos_bullet_collision(p, bullet_pos, future_pos, rad_hitbox)
     return 0
 end
 
-
 function bullet_collision(cp, np, p, player_radius)
     -- cp: current bullet position (array)
     -- np: next bullet position (array)
@@ -91,8 +88,6 @@ function bullet_collision(cp, np, p, player_radius)
     local dist2 = (cp[1] - p[1]) * (cp[1] - p[1]) + (cp[2] - p[2]) * (cp[2] - p[2])
     return (dist <= player_radius * player_radius) or (dist2 <= player_radius * player_radius)
 end
-
-
 
 --------------------------------------
 -- ########### SCORING ############ --
@@ -108,54 +103,60 @@ function score_bull(pos, me)
     return hit_penalty
 end
 
-
 function dist_score(pos, obs)
-    -- Returns the score related to the distance to the closest enemy 
+    -- Returns the score related to the distance to the closest enemy
     return dist_to_scr(get_dist(pos, obs, false))
-
 end
-
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = MARGIN*cod:radius() -- cod radius
-    
-    
+    local r = MARGIN * cod:radius() -- cod radius
+
+
     if vec.distance(pos, center) > r then
         return -vec.distance(pos, center)
     else
         return -1
     end
-    
 end
-
 
 function column_score(pos)
     local dist = closest_column(pos)
 
     if dist <= 5 then
-        return (dist-16)*COLUMN_PENALTY 
+        return (dist - 16) * COLUMN_PENALTY
     elseif dist <= 7 then
-        return (dist-8)*COLUMN_PENALTY*2 
+        return (dist - 8) * COLUMN_PENALTY * 2
     end
     return 0
 end
 
+function wall_score(pos)
+    local distx = math.min(pos:x(), 500 - pos:x())
+    local disty = math.min(pos:y(), 500 - pos:y())
 
-function score(pos, d,  me)
+    if distx <= WALL_MARGIN then
+        return (WALL_MARGIN - distx) * WALL_PENALTY
+    end
+    if disty <= WALL_MARGIN then
+        return (WALL_MARGIN - disty) * WALL_PENALTY
+    end
+    return 0
+end
+
+function score(pos, d, me)
     -- Returns the score of a given position
     if not valid_pos(pos, me) then
         return -math.huge
     end
 
     return LAMB * cod_score(pos, me:cod()) +
-            dist_score(pos, me:visible()) +
-            DASH_PEN*d +
-            score_bull(pos, me) +
-            column_score(pos)
+        dist_score(pos, me:visible()) +
+        DASH_PEN * d +
+        score_bull(pos, me) +
+        column_score(pos) +
+        wall_score(pos)
 end
-
-
 
 --------------------------------------
 -- ##### Auxiliary Functions ###### --
@@ -170,20 +171,19 @@ function get_dist(pos, obs, player)
             local dist = vec.distance(pos, object:pos())
             if dist < min_distance then
                 min_distance = dist
-                closest_player = object  
+                closest_player = object
             end
         end
     end
 
     if player then -- Returns the closest player
-        return {min_distance, closest_player}
+        return { min_distance, closest_player }
     end
     return min_distance
 end
 
-
 function dist_to_scr(dist)
-    -- Returns the score related to the distance 
+    -- Returns the score related to the distance
     local log_dist = math.log(dist)
     if dist <= 2 then
         return log_dist + MELE_PEN
@@ -201,9 +201,8 @@ function closest_column(pos)
         end
     end
 
-    return min_distance  
+    return min_distance
 end
-
 
 function valid_pos(pos, me)
     -- Returns true if the position is valid
@@ -215,15 +214,11 @@ function valid_pos(pos, me)
     return true
 end
 
-
-
-
 --------------------------------------
 -- ########### MOVING ############# --
 --------------------------------------
 
 function next_move(me, n)
-
     -- Update the future position of the bullets
     bullet_pos = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)
     future_pos = {}
@@ -249,7 +244,7 @@ function next_move(me, n)
             ds = false
         end
         if me:cooldown(1) < 1 then
-            new_pos = me_pos:add(vec.new(move:x()*10, move:y()*10))
+            new_pos = me_pos:add(vec.new(move:x() * 10, move:y() * 10))
             new_score = score(new_pos, 1, me)
             if new_score > best_score then
                 best_score = new_score
@@ -260,11 +255,8 @@ function next_move(me, n)
     end
 
 
-    return {best_move, ds}
-    
+    return { best_move, ds }
 end
-
-
 
 --------------------------------------
 -- ########### ATACKING ########### --
@@ -281,7 +273,7 @@ function try_to_cast(me)
             return
         end
     end
-    if me:cooldown(0) < 1 then 
+    if me:cooldown(0) < 1 then
         local closest = get_dist(me:pos(), me:visible(), true)
         -- If it too close or far enough, shoot
         if closest[1] < SHOOT_RANGE or closest[1] > SAFE_RANGE then
@@ -290,9 +282,6 @@ function try_to_cast(me)
         end
     end
 end
-
-
-
 
 -- Main bot function
 function bot_main(me)
