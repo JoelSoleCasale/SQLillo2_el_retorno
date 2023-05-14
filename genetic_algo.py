@@ -66,10 +66,10 @@ def generate_script(individual, index):
 
 @timer_decorator
 def run_tournament(pop):
-    BASE_SCRIPTS = "files/dodger.lua files/dummy.lua files/dummy.lua \
-files/dummy.lua files/dummy.lua files/move_and_attack.lua \
-files/move_with_dash_ref_deb.lua files/move_with_dash_ref.lua \
-files/move_with_dash.lua "
+    BASE_SCRIPTS = "temp_files/dodger.lua temp_files/dummy.lua temp_files/dummy.lua \
+temp_files/dummy.lua temp_files/dummy.lua temp_files/move_and_attack.lua \
+temp_files/move_with_dash_ref_deb.lua temp_files/move_with_dash_ref.lua \
+temp_files/move_with_dash.lua "
     scripts_txt = BASE_SCRIPTS
     for i in range(len(pop)):
         # pop[i]["WALL_MARGIN"] = round(pop[i]["WALL_MARGIN"])
@@ -77,7 +77,6 @@ files/move_with_dash.lua "
 
     command = "docker run -v $(pwd)/temp_files:/temp_files --rm -it tarasyarema/sqlillo "
     command += scripts_txt + " | grep DEAD > temp_files/results.txt"
-    print(command)
     result = os.popen(command).read()
     for i in range(len(pop)):
         os.remove("./temp_files/script" + str(i+1) + ".lua")
