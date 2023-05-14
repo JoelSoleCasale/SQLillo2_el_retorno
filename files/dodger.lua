@@ -17,18 +17,6 @@ function bot_init(me)
     prev_health = me:health()
 end
 
-function display_entities(entities)
-    for _, entity in ipairs(entities) do
-        print(entity:id() .. ": " .. entity:type() .. " " .. entity:pos():x() .. " " .. entity:pos():y())
-    end
-end
-
-function display_pos(pos, prefix)
-    for id, p in pairs(pos) do
-        print(prefix .. id .. ": " .. p[1] .. " " .. p[2])
-    end
-end
-
 function get_bullets_future_pos(entities, prev_entities, t)
     fut_pos = {}
     for _, bullet in ipairs(entities) do
@@ -103,7 +91,6 @@ function next_move(me, n, lamb, dash)
         local new_score = score(new_pos, lamb, 0, me, bullet_pos, future_pos)
 
         if new_score > best_score then
-            print("¿" .. gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             best_score = new_score
             best_move = move
             ds = false
@@ -131,15 +118,11 @@ function next_move(me, n, lamb, dash)
     local new_score = score(new_pos, lamb, 0, me, bullet_pos, future_pos)
 
     if new_score >= best_score then
-        print("¿" .. gametick .. "i moved!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         best_score = new_score
         best_move = move_center
         ds = false
     end
 
-    if best_score < 0 then
-        print("¿" .. gametick .. string.rep("$", 30) .. "UNAVOIDABLE" .. string.rep("$", 30))
-    end
     return { best_move, ds }
 end
 
@@ -182,10 +165,6 @@ end
 function bot_main(me)
     local move = next_move(me, 128, 200, -100)
 
-    if gametick % 100 == 0 then
-        print("¿" .. gametick .. " health: " .. me:health())
-    end
-
     try_to_cast(me)
 
     if move[2] then
@@ -202,10 +181,6 @@ function bot_main(me)
         end
     end
 
-    if me:health() < prev_health - 2 then
-        print("?" .. gametick .. "====================================I got hit!" ..
-            me:health() .. "==========================================")
-    end
     prev_health = me:health()
     gametick = gametick + 1
 end

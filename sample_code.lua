@@ -26,6 +26,12 @@ local COLUMNS = nil    -- columns of the map
 -- Initialize bot
 function bot_init(me)
     COLUMNS = create_columns(me:visible())
+    prev_players_pos = {}
+    for _, entity in ipairs(me:visible()) do
+        if entity:type() == "player" then
+            prev_players_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
+        end
+    end
 end
 
 function create_columns(obs)
@@ -141,6 +147,27 @@ function wall_score(pos)
     return 0
 end
 
+function mean_dist_score(pos, obs)
+    -- Returns the score related to the mean distance to the enemies
+    -- the mean is calculated as 1/n * sum(max(0, MEAN_DIST_MARGIN - dist)))
+    local mean_dist = 0
+    local n = 0
+    for _, object in ipairs(obs) do
+        if object:type() == "player" then
+            local dist = vec.distance(pos, object:pos())
+            if dist <= MEAN_DIST_MARGIN then
+                mean_dist = mean_dist + MEAN_DIST_MARGIN - dist
+                n = n + 1
+            end
+        end
+    end
+
+    if n == 0 then
+        return 0
+    end
+    return mean_dist / n
+end
+
 function score(pos, d, me)
     -- Returns the score of a given position
     if not valid_pos(pos, me) then
@@ -152,7 +179,8 @@ function score(pos, d, me)
         DASH_PEN * d +
         score_bull(pos, me) +
         column_score(pos) +
-        wall_score(pos)
+        wall_score(pos) +
+        MEAN_DIST_PEN * mean_dist_score(pos, me:visible())
 end
 
 --------------------------------------
@@ -260,7 +288,12 @@ end
 --------------------------------------
 function shoot(me, closest)
     -- Shoots the closest enemy
-    me:cast(0, closest[2]:pos():sub(me:pos()))
+    -- get previous position of the closest enemy
+    local prev_pos = prev_players_pos[closest[2]:id()]
+    prev_pos = vec.new(prev_pos[1], prev_pos[2])
+    local delta = closest[2]:pos():sub(prev_pos)
+    local next_pos = closest[2]:pos():add(delta)
+    me:cast(0, next_pos:sub(me:pos()))
 end
 
 function try_to_cast(me)

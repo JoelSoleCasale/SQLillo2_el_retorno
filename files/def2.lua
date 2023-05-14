@@ -20,7 +20,7 @@ local COLUMN_PENALTY = 2               -- penalty for being close to a column
 local WALL_MARGIN = 5
 local WALL_PENALTY = -10
 local MEAN_DIST_MARGIN = 100
-local MEAN_DIST_PEN = -100
+local MEAN_DIST_PEN = -10
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
@@ -350,6 +350,5 @@ function bot_main(me)
         end
     end
 
-    print("def2")
     tick = tick + 1
 end

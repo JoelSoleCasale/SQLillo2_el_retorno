@@ -7,18 +7,6 @@ local prev_bullet_pos = nil
 function bot_init(me)
 end
 
-function display_entities(entities)
-    for _, entity in ipairs(entities) do
-        print(entity:id() .. ": " .. entity:type() .. " " .. entity:pos():x() .. " " .. entity:pos():y())
-    end
-end
-
-function display_pos(pos, prefix)
-    for id, p in pairs(pos) do
-        print(prefix .. id .. ": " .. p[1] .. " " .. p[2])
-    end
-end
-
 function get_bullets_future_pos(entities, prev_entities, t)
     fut_pos = {}
     for _, bullet in ipairs(entities) do
@@ -91,17 +79,6 @@ end
 -- Main bot function
 function bot_main(me)
     gametick = gametick + 1
-
-    -- if gametick % 100 == 0 and prev_bullet_pos[5] then
-    --     print("=====\ntick " .. gametick)
-    --     x1 = get_bullets_future_pos(me:visible(), prev_bullet_pos, 0)[5]
-    --     x2 = get_bullets_future_pos(me:visible(), prev_bullet_pos, 1)[5]
-    --     P = { me:pos():x(), me:pos():y() }
-    --     print("x1 = ", x1[1], x1[2])
-    --     print("x2 = ", x2[1], x2[2])
-    --     print("P = ", P[1], P[2])
-    --     print("P' = ", get_orthogonal_proj(x1, x2, P)[1], get_orthogonal_proj(x1, x2, P)[2])
-    -- end
 
     local me_pos = me:pos()
     -- Update cooldowns
