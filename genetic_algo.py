@@ -16,27 +16,28 @@ def timer_decorator(func):
 
 
 # Genetic Algorithm Parameters
-population_size = 10
+population_size = 35
 mutation_rate = 0.07
-tournament_size = 4
-elite_size = 3
-num_generations = 1
+tournament_size = 3
+elite_size = 4
+num_generations = 75
 
 # Define the range of each parameter
 parameter_ranges = {
     'LAMB': (20, 400),
-    'DASH_PEN': (-500, -50),
-    'MELE_PEN': (-500, -50),
+    'DASH_PEN': (-400, -50),
+    'MELE_PEN': (-400, -50),
     # 'SHOOT_RANGE': (16, 16),
     # 'SAFE_RANGE': (27, 60),
     # 'MARGIN': (0.7, 0.95),
-    'HIT_PENALTY_1': (-10**5, -1000),
+    'HIT_PENALTY_1': (-10**7, -10**3),
     'HIT_RADIUS_1': (1, 1.5),
-    'HIT_PENALTY_2': (-10**4, -500),
+    'HIT_PENALTY_2': (-10**6, -50),
     'HIT_RADIUS_2': (1.1, 2.2),
     # 'COLUMN_PENALTY': (0, 10),
     # 'WALL_MARGIN': (0, 7),
-    'WALL_PENALTY': (-500, -10),
+    'WALL_PENALTY': (-200, -10),
+    'MEAN_DIST_PEN': (-75, -5),
 }
 
 # Generate an initial population of random individuals

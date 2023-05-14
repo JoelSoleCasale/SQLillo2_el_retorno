@@ -13,6 +13,7 @@ local SHOOT_RANGE = 16                               -- range to be careful with
 local SAFE_RANGE = 45                                -- safe range for the gun
 local WALL_MARGIN = 5
 local MARGIN = 0.9
+local MEAN_DIST_MARGIN = 100
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
