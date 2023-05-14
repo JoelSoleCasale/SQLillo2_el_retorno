@@ -312,6 +312,5 @@ function bot_main(me)
         end
     end
 
-    print("def1")
     tick = tick + 1
 end

@@ -325,13 +325,7 @@ function bot_main(me)
             prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
-    prev_players_pos = {}
-    for _, entity in ipairs(me:visible()) do
-        if entity:type() == "player" then
-            prev_players_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
-        end
-    end
-
+    
     print("def2")
     tick = tick + 1
 end
