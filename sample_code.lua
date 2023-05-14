@@ -6,11 +6,11 @@ local bullet_pos = {}            -- position of the bullets
 local prev_bullet_pos = nil      -- previous position of the bullets
 
 -- Hyperparameters
-local N = 8                            -- number of directions
-local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
-local HIT_RADIUS = { 1.05, 1.5 }       -- radius of user for forecasting hits
-local SHOOT_RANGE = 16                 -- range to be careful with dash
-local SAFE_RANGE = 45                  -- safe range for the gun
+local N = 8                                          -- number of directions
+local HIT_PENALTY = { HIT_PENALTY_1, HIT_PENALTY_2 } -- penalty for being hit by a bullet
+local HIT_RADIUS = { HIT_RADIUS_1, HIT_PENALTY_2 }   -- radius of user for forecasting hits
+local SHOOT_RANGE = 16                               -- range to be careful with dash
+local SAFE_RANGE = 45                                -- safe range for the gun
 local WALL_MARGIN = 5
 local MARGIN = 0.9
 

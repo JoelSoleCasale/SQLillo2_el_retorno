@@ -16,27 +16,27 @@ def timer_decorator(func):
 
 
 # Genetic Algorithm Parameters
-population_size = 40
-mutation_rate = 0.1
+population_size = 10
+mutation_rate = 0.07
 tournament_size = 4
 elite_size = 3
-num_generations = 30
+num_generations = 1
 
 # Define the range of each parameter
 parameter_ranges = {
-    'LAMB': (50, 150),
-    'DASH_PEN': (-300, -50),
-    'MELE_PEN': (-300, -50),
+    'LAMB': (20, 400),
+    'DASH_PEN': (-500, -50),
+    'MELE_PEN': (-500, -50),
     # 'SHOOT_RANGE': (16, 16),
     # 'SAFE_RANGE': (27, 60),
     # 'MARGIN': (0.7, 0.95),
-    # 'HIT_PENALTY_1': (-10**5, -1000),
-    # # 'HIT_RADIUS_1': (1, 1.5),
-    # 'HIT_PENALTY_2': (-10**4, -500),
-    # 'HIT_RADIUS_2': (1.1, 2.2),
+    'HIT_PENALTY_1': (-10**5, -1000),
+    'HIT_RADIUS_1': (1, 1.5),
+    'HIT_PENALTY_2': (-10**4, -500),
+    'HIT_RADIUS_2': (1.1, 2.2),
     # 'COLUMN_PENALTY': (0, 10),
     # 'WALL_MARGIN': (0, 7),
-    'WALL_PENALTY': (-200, -10),
+    'WALL_PENALTY': (-500, -10),
 }
 
 # Generate an initial population of random individuals
@@ -66,17 +66,19 @@ def generate_script(individual, index):
 
 @timer_decorator
 def run_tournament(pop):
-    # generate a script for each individual
-    scripts_txt = ""
+    BASE_SCRIPTS = "files/dodger.lua files/dummy.lua files/dummy.lua \
+files/dummy.lua files/dummy.lua files/move_and_attack.lua \
+files/move_with_dash_ref_deb.lua files/move_with_dash_ref.lua \
+files/move_with_dash.lua "
+    scripts_txt = BASE_SCRIPTS
     for i in range(len(pop)):
         # pop[i]["WALL_MARGIN"] = round(pop[i]["WALL_MARGIN"])
         scripts_txt += generate_script(pop[i], i+1) + " "
-    # run the tournament
+
     command = "docker run -v $(pwd)/temp_files:/temp_files --rm -it tarasyarema/sqlillo "
-    # run the command
     command += scripts_txt + " | grep DEAD > temp_files/results.txt"
+    print(command)
     result = os.popen(command).read()
-    # remove the scripts
     for i in range(len(pop)):
         os.remove("./temp_files/script" + str(i+1) + ".lua")
 
@@ -85,8 +87,10 @@ def run_tournament(pop):
     fitness_values = [population_size for _ in range(len(pop))]
     i = 0
     for line in results:
-        i += 1
-        fitness_values[int(''.join(filter(str.isdigit, line)))] = i
+        script_id = int(''.join(filter(str.isdigit, line)))
+        if script_id >= len(BASE_SCRIPTS.split(" ")):
+            fitness_values[script_id - len(BASE_SCRIPTS.split(" "))] = i
+            i += 1
     results.close()
     return fitness_values
 
@@ -94,7 +98,6 @@ def run_tournament(pop):
 # Evaluate the fitness of each individual using the tournament selection
 def evaluate_population(population):
     ranked_population = []
-    # Assuming run_tournament takes the entire population as input
     fitness_values = run_tournament(population)
 
     for i, individual in enumerate(population):
@@ -103,9 +106,6 @@ def evaluate_population(population):
 
     ranked_population.sort(key=lambda x: x[1], reverse=True)
     return ranked_population
-
-
-# Select parents for crossover using tournament selection
 
 
 def select_parents(population):
@@ -117,8 +117,6 @@ def select_parents(population):
         parents.append(winner)
     return parents
 
-# Perform crossover between two parents to create a new individual
-
 
 def crossover(parent1, parent2):
     child = {}
@@ -129,8 +127,6 @@ def crossover(parent1, parent2):
         else:
             child[param] = parent2[param]
     return child
-
-# Mutate an individual by randomly perturbing its parameters
 
 
 def mutate(individual):
@@ -144,8 +140,6 @@ def mutate(individual):
         else:
             mutated_individual[param] = value
     return mutated_individual
-
-# Create the next generation through selection, crossover, and mutation
 
 
 def create_next_generation(population):
@@ -177,11 +171,10 @@ def main():
     print("Best Individuals:")
     for i in range(5):
         individual, fitness = ranked_population[i]
-        pprint("Individual:", individual)
+        pprint(individual)
         print("Fitness:", fitness)
         print()
 
 
 if __name__ == '__main__':
-    # run_tournament(population)
     main()
