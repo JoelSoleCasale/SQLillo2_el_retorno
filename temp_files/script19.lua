@@ -1,6 +1,6 @@
 local LAMB = 150
-local DASH_PEN = -202.88042665762578
-local MELE_PEN = -300
+local DASH_PEN = -256.51099848282206
+local MELE_PEN = -187.11546857909582
 local WALL_PENALTY = -200
 -- Global variables
 local tick = 0                   -- current tick

@@ -1,5 +1,5 @@
 local LAMB = 150
-local DASH_PEN = -300
+local DASH_PEN = -256.5774151566203
 local MELE_PEN = -187.11546857909582
 local WALL_PENALTY = -200
 -- Global variables
