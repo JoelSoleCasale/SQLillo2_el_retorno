@@ -19,6 +19,8 @@ local HIT_RADIUS = { 1.05, 1.5 }       -- radius of user for forecasting hits
 local COLUMN_PENALTY = 2               -- penalty for being close to a column
 local WALL_MARGIN = 5
 local WALL_PENALTY = -10
+local MEAN_DIST_MARGIN = 100
+local MEAN_DIST_PEN = -100
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
@@ -117,7 +119,7 @@ end
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = cod:radius()  -- cod radius
+    local r = cod:radius() -- cod radius
     local dist = vec.distance(pos, center)
 
     if dist < MARGIN * r then
@@ -153,6 +155,27 @@ function wall_score(pos)
     return 0
 end
 
+function mean_dist_score(pos, obs)
+    -- Returns the score related to the mean distance to the enemies
+    -- the mean is calculated as 1/n * sum(max(0, MEAN_DIST_MARGIN - dist)))
+    local mean_dist = 0
+    local n = 0
+    for _, object in ipairs(obs) do
+        if object:type() == "player" then
+            local dist = vec.distance(pos, object:pos())
+            if dist <= MEAN_DIST_MARGIN then
+                mean_dist = mean_dist + MEAN_DIST_MARGIN - dist
+                n = n + 1
+            end
+        end
+    end
+
+    if n == 0 then
+        return 0
+    end
+    return mean_dist / n
+end
+
 function score(pos, d, me)
     -- Returns the score of a given position
     if not valid_pos(pos, me) then
@@ -164,7 +187,8 @@ function score(pos, d, me)
         DASH_PEN * d +
         score_bull(pos, me) +
         column_score(pos) +
-        wall_score(pos)
+        wall_score(pos) +
+        MEAN_DIST_PEN * mean_dist_score(pos, me:visible())
 end
 
 --------------------------------------
@@ -325,7 +349,7 @@ function bot_main(me)
             prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
-    
+
     print("def2")
     tick = tick + 1
 end
