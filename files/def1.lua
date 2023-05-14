@@ -7,7 +7,7 @@ local prev_bullet_pos = nil      -- previous position of the bullets
 
 -- Hyperparameters
 local LAMB = 100                       -- coefficient of the CoD score
-local DASH_PEN = -100                  -- penalty for dashing
+local DASH_PEN = -200                  -- penalty for dashing
 local MELE_PEN = -100                  -- penalty for being too close to an enemy
 local N = 128                          -- number of directions
 local SHOOT_RANGE = 16                 -- range to be careful with dash
@@ -16,8 +16,8 @@ local MARGIN = 0.9                     -- margin for the CoD
 local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
 local HIT_RADIUS = { 1.05, 1.5 }       -- radius of user for forecasting hits
 local COLUMN_PENALTY = 2               -- penalty for being close to a column
-local WALL_MARGIN = 4
-local WALL_PENALTY = -100
+local WALL_MARGIN = 5
+local WALL_PENALTY = -10
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
