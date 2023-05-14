@@ -1,24 +1,22 @@
+local LAMB = 150
+local DASH_PEN = -300
+local MELE_PEN = -287.13808316282245
+local WALL_PENALTY = -200
 -- Global variables
 local tick = 0                   -- current tick
 local center = vec.new(250, 250) -- center of the map
 local future_pos = {}            -- future position of the bullets
 local bullet_pos = {}            -- position of the bullets
 local prev_bullet_pos = nil      -- previous position of the bullets
-local prev_players_pos = nil     -- previous position of the players
 
 -- Hyperparameters
-local LAMB = 100                       -- coefficient of the CoD score
-local DASH_PEN = -120                  -- penalty for dashing
-local MELE_PEN = -100                  -- penalty for being too close to an enemy
-local N = 128                          -- number of directions
-local SHOOT_RANGE = 16                 -- range to be careful with dash
-local SAFE_RANGE = 45                  -- safe range for the gun
-local MARGIN = 0.9                     -- margin for the CoD
+local N = 8                            -- number of directions
 local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
 local HIT_RADIUS = { 1.05, 1.5 }       -- radius of user for forecasting hits
-local COLUMN_PENALTY = 2               -- penalty for being close to a column
+local SHOOT_RANGE = 16                 -- range to be careful with dash
+local SAFE_RANGE = 45                  -- safe range for the gun
 local WALL_MARGIN = 5
-local WALL_PENALTY = -10
+local MARGIN = 0.9
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
@@ -32,12 +30,6 @@ local COLUMNS = nil    -- columns of the map
 -- Initialize bot
 function bot_init(me)
     COLUMNS = create_columns(me:visible())
-    prev_players_pos = {}
-    for _, entity in ipairs(me:visible()) do
-        if entity:type() == "player" then
-            prev_players_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
-        end
-    end
 end
 
 function create_columns(obs)
@@ -117,7 +109,7 @@ end
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = cod:radius()  -- cod radius
+    local r = cod:radius() -- cod radius
     local dist = vec.distance(pos, center)
 
     if dist < MARGIN * r then
@@ -272,12 +264,7 @@ end
 --------------------------------------
 function shoot(me, closest)
     -- Shoots the closest enemy
-    -- get previous position of the closest enemy
-    local prev_pos = prev_players_pos[closest[2]:id()]
-    prev_pos = vec.new(prev_pos[1], prev_pos[2])
-    local delta = closest[2]:pos():sub(prev_pos)
-    local next_pos = closest[2]:pos():add(delta)
-    me:cast(0, next_pos:sub(me:pos()))
+    me:cast(0, closest[2]:pos():sub(me:pos()))
 end
 
 function try_to_cast(me)
@@ -325,13 +312,5 @@ function bot_main(me)
             prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
-    prev_players_pos = {}
-    for _, entity in ipairs(me:visible()) do
-        if entity:type() == "player" then
-            prev_players_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
-        end
-    end
-
-    print("def2")
     tick = tick + 1
 end

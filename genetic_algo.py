@@ -16,8 +16,8 @@ def timer_decorator(func):
 
 
 # Genetic Algorithm Parameters
-population_size = 30
-mutation_rate = 0.01
+population_size = 40
+mutation_rate = 0.1
 tournament_size = 4
 elite_size = 3
 num_generations = 30
