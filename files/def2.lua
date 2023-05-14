@@ -7,7 +7,7 @@ local prev_bullet_pos = nil      -- previous position of the bullets
 
 -- Hyperparameters
 local LAMB = 100                       -- coefficient of the CoD score
-local DASH_PEN = -200                  -- penalty for dashing
+local DASH_PEN = -120                  -- penalty for dashing
 local MELE_PEN = -100                  -- penalty for being too close to an enemy
 local N = 128                          -- number of directions
 local SHOOT_RANGE = 16                 -- range to be careful with dash
@@ -110,14 +110,16 @@ end
 
 function cod_score(pos, cod)
     -- Returns the score related to the CoD
-    local r = MARGIN * cod:radius() -- cod radius
+    local r =  cod:radius() -- cod radius
+    local dist = vec.distance(pos, center)
 
-
-    if vec.distance(pos, center) > r then
-        return -vec.distance(pos, center)
-    else
+    if dist < MARGIN * r then
         return -1
+    elseif dist < r then 
+        return - dist
     end
+
+    return -math.huge
 end
 
 function column_score(pos)
@@ -184,7 +186,7 @@ end
 
 function dist_to_scr(dist)
     -- Returns the score related to the distance
-    local log_dist = math.log(dist)
+    local log_dist = math.log(dist+1)
     if dist <= 2 then
         return log_dist + MELE_PEN
     end
@@ -311,7 +313,7 @@ function bot_main(me)
             prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
-
-    print("def1")
+    
+    print("def2")
     tick = tick + 1
 end
