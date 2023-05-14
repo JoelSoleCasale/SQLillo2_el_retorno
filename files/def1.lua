@@ -15,13 +15,31 @@ local SAFE_RANGE = 45 -- safe range for the gun
 local MARGIN = 0.9 -- margin for the CoD
 local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
 local HIT_RADIUS = { 1.05, 1.5 } -- radius of user for forecasting hits
+local COLUMN_PENALTY = 2 -- penalty for being close to a column
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
+local COLUMNS = nil -- columns of the map
 
+
+--------------------------------------
+-- ########## INITIALIZE ########## --
+--------------------------------------
 
 -- Initialize bot
 function bot_init(me)
+    COLUMNS = create_columns(me:visible())
+end
+
+
+function create_columns(obs)
+    local columns = {}
+    for _, object in ipairs(obs) do
+        if object:type() == "wall" then
+            table.insert(columns, object:pos())
+        end
+    end
+    return columns
 end
 
 
@@ -112,12 +130,29 @@ function cod_score(pos, cod)
 end
 
 
+function column_score(pos)
+    local dist = closest_column(pos)
+
+    if dist <= 5 then
+        return (dist-16)*COLUMN_PENALTY 
+    elseif dist <= 7 then
+        return (dist-8)*COLUMN_PENALTY*2 
+    end
+    return 0
+end
+
+
 function score(pos, d,  me)
     -- Returns the score of a given position
+    if not valid_pos(pos, me) then
+        return -math.huge
+    end
+
     return LAMB * cod_score(pos, me:cod()) +
             dist_score(pos, me:visible()) +
             DASH_PEN*d +
-            score_bull(pos, me)
+            score_bull(pos, me) +
+            column_score(pos)
 end
 
 
@@ -138,9 +173,9 @@ function get_dist(pos, obs, player)
                 closest_player = object  
             end
         end
-
     end
-    if player then
+
+    if player then -- Returns the closest player
         return {min_distance, closest_player}
     end
     return min_distance
@@ -154,6 +189,30 @@ function dist_to_scr(dist)
         return log_dist + MELE_PEN
     end
     return log_dist
+end
+
+function closest_column(pos)
+    -- Returns the distance to the closest column
+    local min_distance = math.huge -- initial value
+    for _, coord in pairs(COLUMNS) do
+        local dist = vec.distance(pos, coord)
+        if dist < min_distance then
+            min_distance = dist
+        end
+    end
+
+    return min_distance  
+end
+
+
+function valid_pos(pos, me)
+    -- Returns true if the position is valid
+    if closest_column(pos, me:visible()) <= 3 then
+        return false
+    elseif pos:x() < 0 or pos:x() > 500 or pos:y() < 0 or pos:y() > 500 then
+        return false
+    end
+    return true
 end
 
 
