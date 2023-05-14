@@ -313,7 +313,6 @@ function bot_main(me)
             prev_bullet_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
-    
-    print("def2")
+
     tick = tick + 1
 end
