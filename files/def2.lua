@@ -16,15 +16,11 @@ local SAFE_RANGE = 45                  -- safe range for the gun
 local MARGIN = 0.9                     -- margin for the CoD
 local HIT_PENALTY = { -100000, -5000 } -- penalty for being hit by a bullet
 local HIT_RADIUS = { 1.05, 1.5 }       -- radius of user for forecasting hits
-local COLUMN_PENALTY = 2               -- penalty for being close to a column
 local WALL_MARGIN = 5
 local WALL_PENALTY = -10
-local MEAN_DIST_MARGIN = 100
-local MEAN_DIST_PEN = -10
 
 -- Constants
 local PLAYER_SPEED = 1 -- player speed
-local COLUMNS = nil    -- columns of the map
 
 
 --------------------------------------
@@ -33,23 +29,12 @@ local COLUMNS = nil    -- columns of the map
 
 -- Initialize bot
 function bot_init(me)
-    COLUMNS = create_columns(me:visible())
     prev_players_pos = {}
     for _, entity in ipairs(me:visible()) do
         if entity:type() == "player" then
             prev_players_pos[entity:id()] = { entity:pos():x(), entity:pos():y() }
         end
     end
-end
-
-function create_columns(obs)
-    local columns = {}
-    for _, object in ipairs(obs) do
-        if object:type() == "wall" then
-            table.insert(columns, object:pos())
-        end
-    end
-    return columns
 end
 
 --------------------------------------
@@ -131,16 +116,6 @@ function cod_score(pos, cod)
     return -math.huge
 end
 
-function column_score(pos)
-    local dist = closest_column(pos)
-
-    if dist <= 5 then
-        return (dist - 16) * COLUMN_PENALTY
-    elseif dist <= 7 then
-        return (dist - 8) * COLUMN_PENALTY * 2
-    end
-    return 0
-end
 
 function wall_score(pos)
     local distx = math.min(pos:x(), 500 - pos:x())
@@ -155,26 +130,6 @@ function wall_score(pos)
     return 0
 end
 
-function mean_dist_score(pos, obs)
-    -- Returns the score related to the mean distance to the enemies
-    -- the mean is calculated as 1/n * sum(max(0, MEAN_DIST_MARGIN - dist)))
-    local mean_dist = 0
-    local n = 0
-    for _, object in ipairs(obs) do
-        if object:type() == "player" then
-            local dist = vec.distance(pos, object:pos())
-            if dist <= MEAN_DIST_MARGIN then
-                mean_dist = mean_dist + MEAN_DIST_MARGIN - dist
-                n = n + 1
-            end
-        end
-    end
-
-    if n == 0 then
-        return 0
-    end
-    return mean_dist / n
-end
 
 function score(pos, d, me)
     -- Returns the score of a given position
@@ -186,9 +141,7 @@ function score(pos, d, me)
         dist_score(pos, me:visible()) +
         DASH_PEN * d +
         score_bull(pos, me) +
-        column_score(pos) +
-        wall_score(pos) +
-        MEAN_DIST_PEN * mean_dist_score(pos, me:visible())
+        wall_score(pos) 
 end
 
 --------------------------------------
@@ -224,18 +177,6 @@ function dist_to_scr(dist)
     return log_dist
 end
 
-function closest_column(pos)
-    -- Returns the distance to the closest column
-    local min_distance = math.huge -- initial value
-    for _, coord in pairs(COLUMNS) do
-        local dist = vec.distance(pos, coord)
-        if dist < min_distance then
-            min_distance = dist
-        end
-    end
-
-    return min_distance
-end
 
 function valid_pos(pos, me)
     -- Returns true if the position is valid
