@@ -44,4 +44,14 @@ As for melee attacks, our approach is even simpler: is there is an enemy in mele
 
 ## 2.5. Hyperparameters adjustement
 
+Trying to find the best hyperparameters for our strategy is a hard task. We have a lot of parameters to adjust, and the space of possible values is huge.
 
+Our approach to this problem is to use a genetic algorithm. We define a population of strategies, and we let them play against each other. Then, we select the best ones and we combine them to create new strategies. We repeat this process until we find a good strategy.
+
+Each strategy is equal to the rest, except for the hyperparameters. We define a set of hyperparameters, and we assign a value to each of them. Then, we combine them to create a strategy. 
+
+This, however, had two main problems:
+
+1. We needed a lot of computing power to run the genetic algorithm. 
+
+2. The genetic algotihtm is only compiting against itself, so it is not guaranteed that the best strategy is good enough to win the game against other players.
