@@ -141,7 +141,7 @@ function score(pos, d, me)
         dist_score(pos, me:visible()) +
         DASH_PEN * d +
         score_bull(pos, me) +
-        wall_score(pos) 
+        wall_score(pos)
 end
 
 --------------------------------------
