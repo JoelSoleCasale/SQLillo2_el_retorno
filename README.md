@@ -24,8 +24,24 @@ The idea of measuring the "goodness" of a direction is not easy to define. There
 
 - **Walls**. Being close to a wall implies that we have less directions to choose from. Even worse for corners. We want to avoid this if possible.
 
-Each of these score criteria returns some metric to evaluate the goodness of a direction (for example, the distance to the nearest enemy for the first, or an indicator function for the ring of fire for the second). Then, we combine them with some weights to obtain the final score. The weight adjustemnt will be explained later on [Hyperparameter Adjustement](#24-hyperparameters-adjustement)
+Each of these score criteria returns some metric to evaluate the goodness of a direction (for example, the distance to the nearest enemy for the first, or an indicator function for the ring of fire for the second). Then, we combine them with some weights to obtain the final score. The weight adjustemnt will be explained later on [Hyperparameter Adjustement](#25-hyperparameters-adjustement)
 
-## 2.3. Attacking
+## 2.3 Dodging bullets
 
-## 2.4. Hyperparameters adjustement
+## 2.4. Attacking
+
+This is the less important part of out strategy.
+
+A good moving strategy in most cases is good enough to survive up to the top 5, even the top 3, but in order to win the game we need to be able to attack. We have two options: melee attack and shooting. Shoothing is, in general, not that usefull. As we discused in [Dodging bullets](#23-dodging-bullets), in most cases it is possible to dodge bullets by moving. 
+
+Given that, we are only using shoots in two cases:
+
+1. When the enemy is so far away that we can shot and have time to reload before he reaches us.
+
+2. When the enemy is close enough to have a hard time dodging the bullets.
+
+As for melee attacks, our approach is even simpler: is there is an enemy in melee range, we attack if possible. Otherwise, we don't.
+
+## 2.5. Hyperparameters adjustement
+
+
